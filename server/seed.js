@@ -1,0 +1,76 @@
+const { faker } = require('@faker-js/faker');
+const MongoClient = require("mongodb").MongoClient;
+const _ = require("lodash");
+
+async function main() {
+    // const uri = "mongodb://localhost://27017";
+       const uri = `mongodb+srv://shadybarakat2019:12345@food-ordering.erztsrb.mongodb.net/?retryWrites=true&w=majority`;
+
+    const client = new MongoClient(uri);
+
+    try {
+        await client.connect();
+
+        const productsCollection = client.db("food-ordering").collection("products");
+        const categoriesCollection = client.db("food-ordering").collection("categories");
+        const usersCollection = client.db("food-ordering").collection("users");
+        // const orderCollection = client.db("food-ordering").collection("orders");
+
+        let categories = ['breakfast', 'lunch', 'dinner', 'drinks'].map((category) => { return { name: category } });
+        await categoriesCollection.insertMany(categories);
+
+        let imageUrls = [
+            'https://res.cloudinary.com/dlv0lekro/image/upload/v1657056151/food-ordering-app/1_mfgcb5.png',
+            'https://res.cloudinary.com/dlv0lekro/image/upload/v1657056151/food-ordering-app/2_afbbos.png',
+            'https://res.cloudinary.com/dlv0lekro/image/upload/v1657056151/food-ordering-app/3_iawvqb.png',
+        ]
+
+        let products = [];
+        for (let i = 0; i < 10; i+=1) {
+            let newProduct = {
+                name: faker.commerce.productName(),
+                adjective: faker.commerce.productAdjective(),
+                desciption: faker.commerce.productDescription(),
+                price: faker.commerce.price(),
+                category: _.sample(categories),
+                imageUrl: _.sample(imageUrls)
+            };
+            products.push(newProduct);
+        }
+        await productsCollection.insertMany(products);
+
+        const users = [
+            {
+              name: 'John Doe',
+              email: 'johndoe@example.com',
+              password: 'password123',
+              isAdmin:1,
+            },
+            {
+              name: 'Jane Doe',
+              email: 'janedoe@example.com',
+              password: 'password456',
+              isAdmin:1,
+
+            },
+
+            {
+                name: 'shady barakat',
+                email: 'shadybarakat@example.com',
+                password: 'password789',
+                isAdmin:0,
+
+              },
+            // add more user objects here
+          ];
+    await usersCollection.insertMany(users);
+  
+
+    } catch (e) {
+        console.error(e);
+    } finally {
+        await client.close();
+    }
+}
+
+main();
